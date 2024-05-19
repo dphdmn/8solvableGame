@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-Puzzle Solvability Game</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin-top: 50px; 
+            background-color: #333; 
+            color: white; 
+        }
+        #puzzle { 
+            display: grid; 
+            grid-template-columns: repeat(3, 100px); 
+            margin-bottom: 20px; 
+            border: 2px solid #444; 
+        }
+        .tile { 
+            width: 100px; 
+            height: 100px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 50px;
+			font-weight: bold;
+            border: 1px solid #222; 
+        }
+        .tile-1, .tile-2, .tile-3 { background-color: #ff6767; color: black; }
+        .tile-4, .tile-7 { background-color: #eeff55; color: black; }
+        .tile-5, .tile-6 { background-color: #6fff8c; color: black; }
+        .tile-8 { background-color: #89dcff; color: black; }
+        .tile-0 { background-color: #333; }
+        #buttons { margin-bottom: 20px; }
+        button { 
+            margin: 5px; 
+            padding: 10px 20px; 
+            background-color: #444; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 16px; 
+        }
+        button:hover { 
+            background-color: #555; 
+        }
+        #results { margin-top: 20px; }
+		.stats {
+			font-size: 20px;
+			text-align: center;
+		}
+    </style>
+</head>
+<body>
+    <h1>8-Puzzle Solvability Game</h1>
+    <div id="puzzle"></div>
+    <div id="buttons">
+        <button onclick="checkSolvable(true)">Solvable</button>
+        <button onclick="checkSolvable(false)">Unsolvable</button>
+    </div>
+    <div id="results">
+        <div class="stats">Attempts: <span id="attempts">0</span>/100</div>
+        <div class="stats">Correct: <span id="correct">0</span></div>
+        <div class="stats">Accuracy: <span id="accuracy">0</span>%</div>
+        <div class="stats">Average Time: <span id="average-time">0</span></div>
+        <div class="stats">Total Time: <span id="total-time">0</span></div>
+    </div>
+    <script>
+        let attempts = 0;
+        let correct = 0;
+        let startTime = 0;
+        let totalTime = 0;
+
+        function generatePuzzle() {
+			let puzzle = Array.from({ length: 9 }, (_, i) => i);
+			for (let i = puzzle.length - 1; i > 0; i--) {
+				let j = Math.floor(Math.random() * (i + 1));
+				[puzzle[i], puzzle[j]] = [puzzle[j], puzzle[i]];
+			}
+			drawPuzzle(puzzle);
+			startTime = performance.now();
+			return puzzle;
+		}
+
+        function drawPuzzle(puzzle) {
+            const puzzleDiv = document.getElementById('puzzle');
+            puzzleDiv.innerHTML = '';
+            puzzle.forEach(tile => {
+                const tileDiv = document.createElement('div');
+                tileDiv.className = `tile tile-${tile}`;
+                tileDiv.innerText = tile === 0 ? '' : tile;
+                puzzleDiv.appendChild(tileDiv);
+            });
+        }
+
+        function isSolvable(puzzle) {
+            let inversions = 0;
+            for (let i = 0; i < puzzle.length; i++) {
+                for (let j = i + 1; j < puzzle.length; j++) {
+                    if (puzzle[i] && puzzle[j] && puzzle[i] > puzzle[j]) {
+                        inversions++;
+                    }
+                }
+            }
+            return inversions % 2 === 0;
+        }
+
+        function formatTime(ms) {
+            let totalSeconds = ms / 1000;
+            let minutes = Math.floor(totalSeconds / 60);
+            let seconds = (totalSeconds % 60).toFixed(3);
+            return `${minutes} minutes ${seconds} seconds`;
+        }
+
+        function formatAverageTime(ms) {
+            let seconds = (ms / 1000).toFixed(3);
+            return `${seconds} seconds`;
+        }
+
+        let currentPuzzle = generatePuzzle();
+
+        function checkSolvable(userGuess) {
+            if (attempts >= 100) return;
+            let endTime = performance.now();
+            let isCorrect = isSolvable(currentPuzzle) === userGuess;
+			correntEl = document.getElementById('correct');
+            if (isCorrect){
+				correct++;
+				correntEl.style.color = "green";
+			} else {
+				correntEl.style.color = "red";
+			}
+            attempts++;
+            totalTime += (endTime - startTime);
+            let accuracy = ((correct / attempts) * 100).toFixed(2);
+            let averageTime = formatAverageTime(totalTime / attempts);
+            let formattedTotalTime = formatTime(totalTime);
+
+            document.getElementById('attempts').innerText = attempts;
+            correntEl.innerText = correct;
+            document.getElementById('accuracy').innerText = accuracy;
+            document.getElementById('average-time').innerText = averageTime;
+            document.getElementById('total-time').innerText = formattedTotalTime;
+
+            if (attempts < 100) {
+                currentPuzzle = generatePuzzle();
+            } else {
+                document.getElementById('puzzle').style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
